@@ -1,6 +1,6 @@
-<?php 
+<?php
 
-class Patient extends MY_Controller 
+class Patient extends MY_Controller
 {
 	public function __construct()
 	{
@@ -12,7 +12,7 @@ class Patient extends MY_Controller
 
 		// <!! IMPORTANT!! >
 		$this->load->model('model_patient');
-		
+
 	}
 
 	/*
@@ -37,14 +37,14 @@ class Patient extends MY_Controller
 				'rules' => 'required'
 			)
 		);
-		
+
 		//print_r($validate_data);
 		$this->form_validation->set_rules($validate_data);
 		$this->form_validation->set_error_delimiters('<p class="text-danger">','</p>');
 
-		if($this->form_validation->run() === true) {	
+		if($this->form_validation->run() === true) {
 			//$imgUrl = $this->uploadImage();
-			$create = $this->model_patient->create();	
+			$create = $this->model_patient->create();
 
 			if($create == true) {
 				$validator['success'] = true;
@@ -53,13 +53,13 @@ class Patient extends MY_Controller
 			else {
 				$validator['success'] = false;
 				$validator['messages'] = "Error while inserting the information into the database";
-			}			
-		} 	
-		else {			
+			}
+		}
+		else {
 			$validator['success'] = false;
 			foreach ($_POST as $key => $value) {
 				$validator['messages'][$key] = form_error($key);
-			}			
+			}
 		} // /else
 
 		echo json_encode($validator);
@@ -67,32 +67,32 @@ class Patient extends MY_Controller
 
 	/*
 	*------------------------------------
-	* returns the uploaded image url 
+	* returns the uploaded image url
 	*------------------------------------
 	*/
-	public function uploadImage() 
+	public function uploadImage()
 	{
-		$type = explode('.', $_FILES['photo']['name']);				
-		$type = $type[count($type)-1];		
+		$type = explode('.', $_FILES['photo']['name']);
+		$type = $type[count($type)-1];
 		$url = 'assets/images/students/'.uniqid(rand()).'.'.$type;
 		if(in_array($type, array('gif', 'jpg', 'jpeg', 'png', 'JPG', 'GIF', 'JPEG', 'PNG'))) {
-			if(is_uploaded_file($_FILES['photo']['tmp_name'])) {			
+			if(is_uploaded_file($_FILES['photo']['tmp_name'])) {
 				if(move_uploaded_file($_FILES['photo']['tmp_name'], $url)) {
 					return $url;
 				}	else {
 					return false;
-				}			
+				}
 			}
-		} 
+		}
 	}
 
 	public function getQueue()
-	{	
+	{
 		$result = array('data' => array());
 		$patientData = $this->model_patient->getQueue();
 
 		if($patientData != null){
-			
+
 			foreach ($patientData as $key => $value) {
 
 				$mname = "";
@@ -103,64 +103,62 @@ class Patient extends MY_Controller
 					}
 				$name = $value['fname'] . ' ' . $mname . $value['lname'];
 
-				$button = '<!-- Single button -->
-				<div class="btn-group">
-				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				    Action <span class="caret"></span>
-				  </button>
-				  <ul class="dropdown-menu">
-				  	<li><a type="button" data-toggle="modal" onclick="patientNumber(/'.$name.'/, '.$value['queue_id'].', '.$value['patient_id'].')" data-target="#choosePackageModal" > <i class="glyphicon glyphicon-check"></i> Accept</a></li>
-				  	<li><a type="button" data-toggle="modal" onclick="decline('.$value['patient_id'].')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>	    
-				  </ul>
-				</div>';
+				$user_type = $_SESSION['account_type'];
+				if($user_type == 8){ //medtech
+					//$button = '-';
+				}
+				if($user_type == 7){ //recept
+					$button = '<!-- Single button -->
+					<div class="btn-group">
+					  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					    Action <span class="caret"></span>
+					  </button>
+					  <ul class="dropdown-menu">
+					  	<li><a type="button" data-toggle="modal" onclick="patientNumber(/'.$name.'/, '.$value['queue_id'].', '.$value['patient_id'].')" data-target="#choosePackageModal" > <i class="glyphicon glyphicon-check"></i> Accept</a></li>
+					  	<li><a type="button" data-toggle="modal" onclick="decline('.$value['patient_id'].')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>
+					  </ul>
+					</div>';
+				}
+				if($user_type == 9){ //owner
+					$button = '-';
+				}
 
 
 				$status=$value['code'] . " - " . $value['StatusName'];
 				date_default_timezone_set("Asia/Manila");
-				$time=date('Y-m-d H:i:s',$value['created_At']);  
-				$result['data'][$key] = array(
-					$value['queue_id'],
-					$name,
-					$time,
-					$status,
-					$button
-				);
+				$time=date('Y-m-d H:i:s',$value['created_At']);
+
+				if($user_type == 8){ //medtech
+					$result['data'][$key] = array(
+						$value['queue_id'],
+						$name,
+						$time,
+						$status,
+					);
+				}else { //recept and others
+					$result['data'][$key] = array(
+						$value['queue_id'],
+						$name,
+						$time,
+						$status,
+						$button
+					);
+				}
+
 			} // /froeach
 		}
 		//var_dump($result);
-		echo json_encode($result);	
+		echo json_encode($result);
 	}
 
-	public function getAciveTrans()
-	{	
+	public function viewResult($trans_id)
+	{
 		$result = array('data' => array());
-		$transData = $this->model_patient->getAciveTrans();
+		$transData = $this->model_patient->viewResult($trans_id);
 
 		if($transData != null){
-			
+
 			foreach ($transData as $key => $value) {
-
-				$mname = "";
-					if($value['mname']){
-						$mname = $value['mname'][0] .'. ';
-					}else{
-						$mname = ' ';
-					}
-				$name = $value['fname'] . ' ' . $mname . $value['lname'];
-
-				$button = '<!-- Single button -->
-				<div class="btn-group">
-				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				    Action <span class="caret"></span>
-				  </button>
-				  <ul class="dropdown-menu">
-				  	<li><a type="button" data-toggle="modal" onclick="update('.$value['trans_id'].') data-target="#'.$value['test_id'].'Modal" > <i class="glyphicon glyphicon-edit"></i> Update</a></li>
-				  	<li><a type="button" data-toggle="modal" onclick="finalize('.$value['trans_id'].')"> <i class="glyphicon glyphicon-list-alt"></i> Finalize</a></li>	    
-				  </ul>
-				</div>';
-
-				date_default_timezone_set("Asia/Manila");
-				$time=date('Y-m-d H:i:s',$value['created_At']);  
 				$result['data'][$key] = array(
 					$value['trans_id'],
 					$name,
@@ -170,7 +168,67 @@ class Patient extends MY_Controller
 			} // /froeach
 		}
 		//var_dump($result);
-		echo json_encode($result);	
+		echo json_encode($result);
+	}
+
+	public function getAciveTrans()
+	{
+		$result = array('data' => array());
+		$transData = $this->model_patient->getAciveTrans();
+
+		if($transData != null){
+
+			foreach ($transData as $key => $value) {
+				date_default_timezone_set("Asia/Manila");
+				$time=date('Y-m-d H:i:s',$value['created_At']);
+
+				$mname = "";
+					if($value['mname']){
+						$mname = $value['mname'][0] .'. ';
+					}else{
+						$mname = ' ';
+					}
+				$name = $value['fname'] . ' ' . $mname . $value['lname'];
+
+				$user_type = $_SESSION['account_type'];
+				if($user_type == 8){ //medtech
+					$button = '<!-- Single button -->
+					<div class="btn-group">
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							Action <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li><a type="button" data-toggle="modal" onclick="view('.$value['trans_id'].', /'.$name.'/, /'.$time.'/)" data-target="#viewResultModal"> <i class="glyphicon glyphicon-eye-open"></i> View</a></li>
+							<li><a type="button" data-toggle="modal" onclick="update('.$value['trans_id'].')" data-target="#'.$value['test_id'].'Modal" > <i class="glyphicon glyphicon-edit"></i> Update</a></li>
+							<li><a type="button" data-toggle="modal" onclick="finalize('.$value['trans_id'].')"> <i class="glyphicon glyphicon-list-alt"></i> Finalize</a></li>
+						</ul>
+					</div>';
+				}
+				if($user_type == 7){//recept
+					$button = '<!-- Single button -->
+					<div class="btn-group">
+					  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					    Action <span class="caret"></span>
+					  </button>
+					  <ul class="dropdown-menu">
+							<li><a type="button" data-toggle="modal" onclick="view('.$value['trans_id'].', /'.$name.'/, /'.$time.'/)" data-target="#viewResultModal"> <i class="glyphicon glyphicon-eye-open"></i> View</a></li>
+					</div>';
+				}
+				if($user_type == 9){//owner
+					$button = 'No Action Found';
+				}
+
+
+				$result['data'][$key] = array(
+					$value['trans_id'],
+					$name,
+					$time,
+					$button
+				);
+			} // /froeach
+		}
+		//var_dump($result);
+		echo json_encode($result);
 	}
 
 	/*
@@ -179,7 +237,7 @@ class Patient extends MY_Controller
 	*------------------------------------
 	*/
 	public function getPatient($patient_id = null)
-	{	
+	{
 		$result = array('data' => array());
 		if($patient_id){
 
@@ -188,9 +246,9 @@ class Patient extends MY_Controller
 			$patientData = $this->model_patient->getPatient();
 
 			if($patientData != null){
-				
+
 				foreach ($patientData as $key => $value) {
-				
+
 					$button = '<!-- Single button -->
 					<div class="btn-group">
 					  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -200,7 +258,7 @@ class Patient extends MY_Controller
 					  	<li><a type="button" data-toggle="modal" onclick="addQueue('.$value['patient_id'].')"> <i class="glyphicon glyphicon-plus"></i> Add Queue</a></li>
 					  	<li><a type="button" data-toggle="modal" data-target="#viewPatientInfoModal" onclick="viewPatient('.$value['patient_id'].')"> <i class="glyphicon glyphicon-eye-open"></i> View</a></li>
 					  	<li><a type="button" data-toggle="modal" data-target="#editPatientInfoModal" onclick="editPatient('.$value['patient_id'].')"> <i class="glyphicon glyphicon-edit"></i> Update</a></li>
-					   <!-- <li><a type="button" data-toggle="modal" data-target="#removePatientInfoModal" onclick="removePatient('.$value['patient_id'].')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>		-->    
+					   <!-- <li><a type="button" data-toggle="modal" data-target="#removePatientInfoModal" onclick="removePatient('.$value['patient_id'].')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>		-->
 					  </ul>
 					</div>';
 
@@ -223,7 +281,7 @@ class Patient extends MY_Controller
 				} // /froeach
 			}
 		}
-		echo json_encode($result);	
+		echo json_encode($result);
 	}
 
 	/*
@@ -235,7 +293,7 @@ class Patient extends MY_Controller
 	{
 		if($patient_id) {
 
-			$validator = array('success' => false, 'messages' => array(), 'sectionData' => array());											
+			$validator = array('success' => false, 'messages' => array(), 'sectionData' => array());
 			$validate_data = array(
 				array(
 					'field' => 'editFname',
@@ -246,7 +304,7 @@ class Patient extends MY_Controller
 					'field' => 'editLname',
 					'label' => 'Last Name',
 					'rules' => 'required'
-				),			
+				),
 				array(
 					'field' => 'editContact',
 					'label' => 'Contact',
@@ -257,9 +315,9 @@ class Patient extends MY_Controller
 			$this->form_validation->set_rules($validate_data);
 			$this->form_validation->set_error_delimiters('<p class="text-danger">','</p>');
 
-			if($this->form_validation->run() === true) {					
-				$updateInfo = $this->model_patient->updateInfo($patient_id);	
-				//var_dump($updateInfo); 					
+			if($this->form_validation->run() === true) {
+				$updateInfo = $this->model_patient->updateInfo($patient_id);
+				//var_dump($updateInfo);
 				if($updateInfo == true) {
 					$validator['success'] = true;
 					$validator['messages'] = "Successfully added";
@@ -267,13 +325,13 @@ class Patient extends MY_Controller
 				else {
 					$validator['success'] = false;
 					$validator['messages'] = "Error while inserting the information into the database";
-				}			
-			} 	
-			else {			
+				}
+			}
+			else {
 				$validator['success'] = false;
 				foreach ($_POST as $key => $value) {
 					$validator['messages'][$key] = form_error($key);
-				}			
+				}
 			} // /else
 
 
@@ -285,7 +343,7 @@ class Patient extends MY_Controller
 	{
 		if($patient_id) {
 			$findQueue = $this->model_patient->findQueue($patient_id);
-			//var_dump($updateInfo); 					
+			//var_dump($updateInfo);
 			if($findQueue == true) {
 				$validator['success'] = true;
 				$validator['messages'] = "Queue Present";
@@ -293,14 +351,14 @@ class Patient extends MY_Controller
 			else {
 				$validator['success'] = false;
 				$validator['messages'] = "No Queue with Patient ID";
-			}			
-		} 
+			}
+		}
 		echo json_encode($validator);
-			
+
 	}
 
 	public function updateQueueLog($queue_id = null, $patient_id = null){
-		$user_id = $_SESSION['id'];			
+		$user_id = $_SESSION['id'];
 		$this->model_patient->addQueueLog($queue_id, $patient_id, $user_id);
 	}
 
@@ -313,9 +371,9 @@ class Patient extends MY_Controller
 	{
 		if($patient_id) {
 				$addQueue = $this->model_patient->addQueue($patient_id);
-				$user_id = $_SESSION['id'];					
+				$user_id = $_SESSION['id'];
 				$addQueueLog = $this->model_patient->addQueueLog('',$patient_id, $user_id);
-				//var_dump($updateInfo); 					
+				//var_dump($updateInfo);
 				if($addQueue == true) {
 					$validator['success'] = true;
 					$validator['messages'] = "Successfully added";
@@ -323,12 +381,12 @@ class Patient extends MY_Controller
 				else {
 					$validator['success'] = false;
 					$validator['messages'] = "Error while inserting the information into the database";
-				}			
-		} else {			
+				}
+		} else {
 			$validator['success'] = false;
 			foreach ($_POST as $key => $value) {
 				$validator['messages'][$key] = form_error($key);
-			}			
+			}
 		} // /else
 
 		//var_dump($patient_id);
@@ -347,21 +405,21 @@ class Patient extends MY_Controller
 			$validator = array('success' => false, 'messages' => array());
 
 			if(empty($_FILES['editPhoto']['tmp_name'])) {
-				$validator['success'] = false;	
+				$validator['success'] = false;
 				$validator['messages'] = "The Photo Field is required";
-			} 
+			}
 			else {
 				$imgUrl = $this->editUploadImage();
-				$update = $this->model_student->updatePhoto($studentId, $imgUrl);					
+				$update = $this->model_student->updatePhoto($studentId, $imgUrl);
 
 				if($update == true) {
-					$validator['success'] = true;	
-					$validator['messages'] = "Successfully Updated";	
+					$validator['success'] = true;
+					$validator['messages'] = "Successfully Updated";
 				}
 				else {
 					$validator['success'] = false;
 					$validator['messages'] = "Error while inserting the information into the database";
-				}					
+				}
 			} // /else
 			echo json_encode($validator);
 		} // /if
@@ -376,28 +434,28 @@ class Patient extends MY_Controller
 
 	}
 	public function update91() {
-		
+
 	}
 
 	/*
 	*------------------------------------
-	* returns the edited image url 
+	* returns the edited image url
 	*------------------------------------
 	*/
-	public function editUploadImage() 
+	public function editUploadImage()
 	{
-		$type = explode('.', $_FILES['editPhoto']['name']);				
-		$type = $type[count($type)-1];		
+		$type = explode('.', $_FILES['editPhoto']['name']);
+		$type = $type[count($type)-1];
 		$url = 'assets/images/students/'.uniqid(rand()).'.'.$type;
 		if(in_array($type, array('gif', 'jpg', 'jpeg', 'png', 'JPG', 'GIF', 'JPEG', 'PNG'))) {
-			if(is_uploaded_file($_FILES['editPhoto']['tmp_name'])) {			
+			if(is_uploaded_file($_FILES['editPhoto']['tmp_name'])) {
 				if(move_uploaded_file($_FILES['editPhoto']['tmp_name'], $url)) {
 					return $url;
 				}	else {
 					return false;
-				}			
+				}
 			}
-		} 
+		}
 	}
 
 	/*
@@ -405,7 +463,7 @@ class Patient extends MY_Controller
 	* removes the student's information
 	*------------------------------------
 	*/
-	public function remove($patient_id = null) 
+	public function remove($patient_id = null)
 	{
 		$validator = array('success' => false, 'messages' => array());
 
@@ -414,10 +472,10 @@ class Patient extends MY_Controller
 			if($remove) {
 				$validator['success'] = true;
 				$validator['messages'] = "Successfully Removed";
-			} 
+			}
 			else {
 				$validator['success'] = false;
-				$validator['messages'] = "Error while removing the information";	
+				$validator['messages'] = "Error while removing the information";
 			} // /else
 		} // /if
 

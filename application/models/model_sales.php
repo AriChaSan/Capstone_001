@@ -1,6 +1,6 @@
-<?php 
+<?php
 
-class Model_Sales extends CI_Model 
+class Model_Sales extends CI_Model
 {
 	public function __construct()
 	{
@@ -10,7 +10,7 @@ class Model_Sales extends CI_Model
 	/*
 	*------------------------------------
 	* inserts the student's information
-	* into the database 
+	* into the database
 	*------------------------------------
 	*/
 
@@ -32,7 +32,7 @@ class Model_Sales extends CI_Model
 
 	public function countTotalSalesToday()
 	{
-		$today = strtotime(date("M d Y 08:00:01"));
+		$today = strtotime(date("M d Y 00:00:01"));//if not working just change 00:00:01 to 08:00:01
 		$sql = "SELECT SUM(amount) as salestoday FROM sales WHERE created_At >= ?";
 		$query = $this->db->query($sql, array($today));
 		return $query->result_array();
@@ -40,7 +40,7 @@ class Model_Sales extends CI_Model
 
 	public function countTotalPatientToday()
 	{
-		$today = strtotime(date("M d Y 08:00:01"));
+		$today = strtotime(date("M d Y 00:00:01"));//if not working just change 00:00:01 to 08:00:01
 		$sql = "SELECT * FROM sales WHERE created_At >= ?";
 		$query = $this->db->query($sql, array($today));
 		//var_dump($query->num_rows());
