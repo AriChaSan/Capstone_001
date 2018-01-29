@@ -262,7 +262,7 @@ class Inventory extends MY_Controller
 		}
 	}
 
-	public function activateResult($queue_id = null, $patient_id = null, $test_id = null) {
+	public function activateResult($queue_id, $patient_id, $test_id) {
 		if ($queue_id) {
 			$user_id = $_SESSION['id'];
 			$activateTransactionData = $this->model_inventory->activateResult($queue_id, $patient_id, $test_id, $user_id);

@@ -97,7 +97,7 @@ div#inventoryCheckPackage1Modal {
 <input type="text" value="" name="hiddenpatientname" id="hiddenpatientname"/>
 <input type="text" value="" name="hiddenqueue_id" id="hiddenqueue_id"/>
 <input type="text" value="" name="patient_number" id="patient_number"/>
-<input type="text" value="" name="total_amount" id="total_amount"/>
+<input type="text" value="" name="current_test_123" id="current_test_123"/>
 <input type="text" value="" name="transaction_id" id="transaction_id"/>
 <!-- add tem modal -->
 
@@ -199,12 +199,12 @@ div#inventoryCheckPackage1Modal {
           <table id="viewResult" class="table table-bordered">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Content</th>
-                <th>Normal Value</th>
-                <th>Result</th>
-                <th>ABN</th>
+                <th width="5%">ID</th>
+                <th width="15%">Package/Test</th>
+                <th width="15%">Content</th>
+                <th width="20%">Normal Value</th>
+                <th width="25%">Result</th>
+                <th width="20%">Notes</th>
               </tr>
             </thead>
             <tbody><!--tbody content-->
@@ -221,7 +221,7 @@ div#inventoryCheckPackage1Modal {
 </div><!-- /.modal-content -->
 
 <div class="modal fade" tabindex="-1" role="dialog" id="UpdateResultModal">
-  <div class="modal-dialog modal-sm" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -229,11 +229,50 @@ div#inventoryCheckPackage1Modal {
       </div>
       <div class="modal-body add-modal">
         <div class="row">
-            <div id="view_result"> </div>
+          <div id="package1" style="border: none; border-color: none; text-align: center;">
+            <b>Porac Perpetual Polyclinic and Diagnostics</b><br/>
+            <i>Joven St., Babo Sacan, Porac Pampanga</i></br/>
+            <i>0943-086-954(SUN)&0975-787-8252(TM)</i><br/><hr/>
+            <div style="text-align: center;">
+              <center>
+                  <b>Patient Name: </b>
+                  <input type="text" style="width: 110px; border: none; outline: none; background-color: transparent; text-align: left;" readonly="true" id="patient_names1" value="Mariah Carey"/>
+                  ||
+                  <b>Trans-Date   : </b>
+                  <input type="text" style="width: 130px; border: none; outline: none; background-color: transparent; text-align: left;" readonly="true" id="trans_date1" value="<?php echo date('Y-m-d H:i:s',strtotime("now")); ?>"/>
+                  ||
+                  <b>Trans-No     : </b>
+                  <input type="text" style="width: 85px; border: none; outline: none; background-color: transparent; text-align: left;" readonly="true" id="transno1" value="1"/>
+                  ||
+                  <b>Trans-Key    : </b>
+                  <input type="text" style="width: 90px; border: none; outline: none; background-color: transparent; text-align: left;" readonly="true" id="transkey1" value="P0R9C-D4I3G"/>
+                  <br/> <hr/><br/><br/>
+              </center>
+            </div>
+          </div>
+          <table id="updateResult" class="table table-bordered">
+            <thead>
+              <tr>
+                <th width="5%">ID</th>
+                <th width="15%">Package/Test</th>
+                <th width="15%">Content</th>
+                <th width="20%">Normal Value</th>
+                <th width="25%">Result</th>
+                <th width="20%">Notes</th>
+              </tr>
+            </thead>
+            <tbody><!--tbody content-->
+              <div id="result"></div>
+            </tbody>
+          </table><!--table end-->
         </div>
       </div><!-- /modal-body -->
       <div class="modal-footer view-result-modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" data-toggle="modal" onclick="updateTestResult(this)" id="updateTestResult">
+          <i class="glyphicon glyphicon-ok"></i> Save Result
+        </button>
+
       </div>
     </div>
   </div>

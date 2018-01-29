@@ -161,9 +161,35 @@ class Patient extends MY_Controller
 			foreach ($transData as $key => $value) {
 				$result['data'][$key] = array(
 					$value['trans_id'],
-					$name,
-					$time,
-					$button
+					($value['test_id'] > 90 ? $value['test_id'] . ': ' .'Package ' . ($value['test_id']-90) : ($value['test_id'])) ,
+					$value['test_result_name'],
+					($value['gender'] == '' ? $value['normal_value'] : $value['gender'] . ': ' . $value['normal_value']) ,
+					($value['result'] == '' ? 'No Saved Result' : $value['result']),
+					($value['comment'] == '' ? '-' : $value['comment']),
+				);
+			} // /froeach
+		}
+		//var_dump($result);
+		echo json_encode($result);
+	}
+
+	public function load_updateResult($trans_id)//where you load the table when updating it
+	{
+		$result = array('data' => array());
+		$transData = $this->model_patient->viewResult($trans_id);
+
+		if($transData != null){
+
+			foreach ($transData as $key => $value) {
+				$name = str_replace(" ", "" ,$value['trans_id'].'_'.$value['test_id'].'_'.$value['test_result_name']);
+				//var_dump($name);
+				$result['data'][$key] = array(
+					$value['trans_id'],
+					($value['test_id'] > 90 ? $value['test_id'] . ': ' .'Package ' . ($value['test_id']-90) : ($value['test_id'])) ,
+					$value['test_result_name'],
+					($value['gender'] == '' ? $value['normal_value'] : $value['gender'] . ': ' . $value['normal_value']) ,
+					"<input type='text' style='border: none; outline: none; background-color: transparent; text-align: left;' placeholder='Enter value...' name='result_".$name."' value='".$value['result']."'/>",
+					"<input type='text' style='border: none; outline: none; background-color: transparent; text-align: left;' name='comment_".$name."' value='".$value['comment']."'/>",
 				);
 			} // /froeach
 		}
@@ -199,7 +225,7 @@ class Patient extends MY_Controller
 						</button>
 						<ul class="dropdown-menu">
 							<li><a type="button" data-toggle="modal" onclick="view('.$value['trans_id'].', /'.$name.'/, /'.$time.'/)" data-target="#viewResultModal"> <i class="glyphicon glyphicon-eye-open"></i> View</a></li>
-							<li><a type="button" data-toggle="modal" onclick="update('.$value['trans_id'].')" data-target="#'.$value['test_id'].'Modal" > <i class="glyphicon glyphicon-edit"></i> Update</a></li>
+							<li><a type="button" data-toggle="modal" onclick="load_Update_Result('.$value['trans_id'].', /'.$name.'/, /'.$time.'/)" data-target="#UpdateResultModal" > <i class="glyphicon glyphicon-edit"></i> Update</a></li>
 							<li><a type="button" data-toggle="modal" onclick="finalize('.$value['trans_id'].')"> <i class="glyphicon glyphicon-list-alt"></i> Finalize</a></li>
 						</ul>
 					</div>';
@@ -283,6 +309,40 @@ class Patient extends MY_Controller
 		}
 		echo json_encode($result);
 	}
+
+	public function updateTestResult()
+	{
+		$data = $this->input->post();
+		$trans_info = $data["trans_info"];
+		if($trans_info) {
+			$status = $this->model_patient->updateTestResult($trans_info);
+			return ($status ? true : false);
+		}
+		return false;
+	}
+
+	public function finalizeTestResult($trans_id)
+	{
+		$user_id = $_SESSION['id'];
+		$trans_id = $this->model_patient->finalizeTestResult($user_id, $trans_id);
+		return $trans_id;
+	}
+
+	public function checkResultStatus($trans_id)
+	{
+		$status = $this->model_patient->checkResultStatus($trans_id);
+		$validator;
+		if($status == 0){
+			$validator['status'] = 'true';
+			$validator['amount'] = 0;
+		}else{
+			$validator['status'] = 'false';
+			$validator['amount'] = $status;
+		}
+		echo json_encode($validator);
+	}
+
+
 
 	/*
 	*------------------------------------

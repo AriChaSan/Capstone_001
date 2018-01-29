@@ -115,13 +115,40 @@ class Model_Inventory extends CI_Model
 			$this->db->from('active_transaction');
 			$this->db->join('test_result ', 'active_transaction.test_content_id = test_result.test_id');
 			$this->db->join('test ', 'test.id = active_transaction.test_content_id');
+			$this->db->group_by('test_result`.`test_result_name`');
 			$this->db->where('active_transaction.test_content_id', $test_id);
 
 			$query = $this->db->get();
 
-		var_dump($resultQuery = $query->result_array());
-		var_dump($this->db->last_query());
-	}
+		 $resultQuery = $query->result_array();
+
+		 if($resultQuery != null){
+       foreach ($resultQuery as $key => $value) {
+
+         $gender ="";
+         if($value['gender'] == 0){
+           $gender = "M";
+         }elseif($value['gender'] == 1){
+           $gender = "F";
+         }elseif($value['gender'] == 0){
+           $gender = "N";
+         }
+
+         $update_data = array(
+           'trans_id'			=> $queue_id,
+           'test_id'			=> $test_id,
+           'test_result_name'	=> $value['test_result_name'],
+           'result'			=> '',
+           'gender'			=> $gender,
+           'normal_value'		=> $value['test_result_normal_value']
+         );
+         $query = $this->db->insert('result', $update_data);
+				 echo "<script>console.log(".$this->db->last_query().")</script>";
+       }
+       return ($query === true ? true : false);
+     }
+   }
+   return false;
 }
 
 	public function passiveTransaction($queue_id = null, $patient_id = null, $test_id = null, $user_id = null){

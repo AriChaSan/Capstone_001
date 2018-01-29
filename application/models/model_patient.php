@@ -137,6 +137,7 @@ class Model_Patient extends CI_Model
 		$this->db->select('*');
 		$this->db->from('result');
 		$this->db->where('trans_id = ', $trans_id);
+		//$this->db->group_by('result.queue_id');
 		$query = $this->db->get();
 
 		return $query->result_array();
@@ -223,6 +224,65 @@ class Model_Patient extends CI_Model
 			return ($query === true ? true : false);
 		}
 	}
+
+	public function checkResultStatus($trans_id)
+	{
+		$sql = "SELECT * FROM `result` where `trans_id` = ? AND `result` = ?";
+		$query = $this->db->query($sql, array($trans_id, ''));
+		return $query->num_rows();
+	}
+
+	public function finalizeTestResult($user_id, $trans_id)
+	{
+			$this->db->select('*');
+			$this->db->from('result');
+			$this->db->where('trans_id = ', $trans_id);
+
+			$query = $this->db->get();
+			$result = $query->result_array();
+
+			if($result){
+				foreach ($result as $key => $value) {
+					$insert_data = array(
+						'trans_id' 								=> 	$value['trans_id'],
+						'test_id' 								=>  $value['test_id'],
+						'test_result_name'				=>  $value['test_result_name'],
+						'result'									=>  $value['result'],
+						'gender'									=>  $value['gender'],
+						'normal_value'						=>  $value['normal_value'],
+						'comment'									=>  $value['comment'],
+						'user_id' 								=>  $user_id,
+						'finalize_At' 						=>  strtotime("now"),
+					);
+
+					$status = $this->db->insert('result_history', $insert_data);
+				}
+				$this->db->where('trans_id', $trans_id);
+				$query = $this->db->delete('active_transaction');
+
+				return ($query === true ? true : false);
+			}
+			return false;
+
+	}
+
+	public function updateTestResult($trans_info)
+	{
+		if($trans_info) {
+			$update_data = array(
+				'result' 	=> $trans_info[4],
+				'comment'	=> $trans_info[5]
+			);
+
+			$this->db->where('trans_id =', $trans_info[0]);
+			$this->db->where('test_id =', $trans_info[1]);
+			$this->db->where('test_result_name =', $trans_info[2]);
+			$query = $this->db->update('result', $update_data);
+
+			return ($query === true ? true : false);
+		}
+	}
+
 
 	/*
 	*-----------------------------------
