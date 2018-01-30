@@ -169,6 +169,17 @@ class Model_Inventory extends CI_Model
 		}return false;
 	}
 
+	public function fetchTestResult($trans_id)
+	{
+		$this->db->select('*');
+		$this->db->from('result');
+		$this->db->where('trans_id =', $trans_id);
+		$query = $this->db->get();
+
+		return $query->result_array();
+		$this->db->last_query();
+	}
+
 	public function getItems()
 	{
 		$this->db->select('items.id, items.item_type_id, items.item_name, items.quantity, items.created_At, items.lastupdated_date, items.lastupdated_by,

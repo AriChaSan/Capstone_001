@@ -119,6 +119,12 @@ class Model_Patient extends CI_Model
 		return $query->result_array();
 	}
 
+	public function getActiveData($trans_id)
+	{
+		$query = $this->db->query("SELECT * FROM active_transaction WHERE `trans_id` = $trans_id LIMIT 1");
+		return $query->result_array();
+	}
+
 	public function getAciveTrans()
 	{
 		$this->db->select('patient.patient_id, patient.p-fname as `fname`, patient.p-mname as `mname`, patient.p-lname as `lname`, active_transaction.created_At, active_transaction.trans_id, result.test_id
@@ -257,10 +263,29 @@ class Model_Patient extends CI_Model
 
 					$status = $this->db->insert('result_history', $insert_data);
 				}
-				$this->db->where('trans_id', $trans_id);
-				$query = $this->db->delete('active_transaction');
 
-				return ($query === true ? true : false);
+				$active_data = $this->getActiveData($trans_id);
+				foreach ($active_data as $key => $value) {
+					$insert_data = array(
+						'trans_id'	=>	$value['trans_id'],
+						'trans_key'	=>	'P0R9C-D4I3',
+						'user_activate_id'	=>	$user_id,
+						'created_At'	=>	strtotime("now"),
+						'patient_id'	=>	$value['patient_id'],
+						'queue_id'	=>	$value['queue_id'],
+					);
+
+					$status = $this->db->insert('passive_transaction', $insert_data);
+
+					if($status){
+						$this->db->where('trans_id', $trans_id);
+						$query = $this->db->delete('active_transaction');
+
+						return ($query === true ? true : false);
+					}else {
+						return false;
+					}
+				}
 			}
 			return false;
 

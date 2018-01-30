@@ -95,6 +95,44 @@ class Inventory extends MY_Controller
 		$this->model_inventory->salesLog($trans_id, $total_price, $user_id);
 	}
 
+	public function fetchTestResult($trans_id)
+	{
+		$table='
+		<table id ="viewResultTable" class="table table-bordered">
+			<thead>
+				<tr>
+					<th style="text-align:center">TEST</th>
+					<th style="text-align:center">RESULT</th>
+					<th style="text-align:center">NORMAL VALUE</th>
+					<th style="text-align:center">NOTES</th>
+				</tr>
+			</thead>
+			<tbody>
+		';
+		$resultData = $this->model_inventory->fetchTestResult($trans_id);
+			if(!empty($resultData)){
+				foreach ($resultData as $key => $value){
+					$table .= '
+					<tr>
+						<td> '. $value['test_id']. ' - '. $value['test_result_name'] .' </td>
+						<td> '. $value['result'] .' </td>
+						<td> '. $value['normal_value'] .' </td>
+						<td> '. $value['comment'] .'</td>
+					</tr>
+					';
+
+				}//foreach
+
+				$table .= '
+					</tbody>
+				</table>
+				';
+			}else{
+				$table = "No Result Found!";
+			}
+			echo ($table);
+	}
+
 	public function generateReceipt()
 	{
 		$data = $this->input->post();
